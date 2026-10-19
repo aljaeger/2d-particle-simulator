@@ -5,46 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>2D Particle Simulator</title>
 <style>
-  html, body { margin: 0; height: 100%; font: 13px sans-serif; background: white; color: black; }
-  body { display: flex; }
-  #controls { width: 230px; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column; gap: 3px; overflow-y: auto; flex-shrink: 0; }
-  #controls button { width: 100%; }
-  #controls .row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-  #controls .row input { width: 70px; }
+  html, body { margin: 0; height: 100%; font: 14px sans-serif; background: white; color: black; }
+  body { display: flex; flex-direction: column; }
+  #plot { flex: 1; min-height: 0; }
+  #canvas { display: block; touch-action: none; }
+  #controls { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; padding: 8px; box-sizing: border-box;
+              max-height: 50vh; overflow-y: auto; flex-shrink: 0; border-top: 1px solid #ccc; }
+  #controls .column { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  #controls button { width: 100%; min-height: 34px; font-size: 14px; }
+  #controls .row { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 30px; }
+  #controls .row input { width: 70px; font-size: 14px; min-height: 26px; }
+  #controls label { display: flex; align-items: center; gap: 6px; min-height: 30px; }
+  #controls input[type=checkbox] { width: 18px; height: 18px; margin: 0; }
   #controls input.invalid { background: mistyrose; }
-  #controls .spacer { height: 6px; }
-  #status { white-space: pre-wrap; min-height: 2.5em; margin-top: 6px; }
-  #plot { flex: 1; min-width: 0; }
-  #canvas { display: block; }
-  #fields { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; }
+  #status { grid-column: 1 / -1; white-space: pre-wrap; min-height: 1.4em; }
+  #fields { display: grid; grid-template-columns: auto 1fr; gap: 6px 8px; align-items: center; }
+  #fields input { font-size: 16px; min-height: 28px; }
   #dialog-error { color: red; min-height: 1.2em; margin: 6px 0; }
-  #dialog menu { display: flex; gap: 4px; justify-content: center; margin: 0; padding: 0; }
+  #dialog menu { display: flex; gap: 6px; justify-content: center; margin: 0; padding: 0; }
+  #dialog menu button { min-height: 34px; min-width: 70px; font-size: 14px; }
+  /* Landscape: the panel moves to the right of the plot, still in two columns. */
+  @media (orientation: landscape) {
+    body { flex-direction: row; }
+    #plot { min-width: 0; }
+    #controls { order: 1; max-height: none; width: min(380px, 50vw); align-content: start;
+                overflow-y: auto; border-top: none; border-left: 1px solid #ccc; }
+  }
 </style>
 </head>
 <body>
+<div id="plot"><canvas id="canvas"></canvas></div>
 <div id="controls">
-  <div id="add-buttons"></div>
-  <div class="spacer"></div>
-  <button id="edit-source" disabled>Edit Source</button>
-  <button id="load-button" disabled>Load configuration</button>
-  <input id="load" type="file" accept=".json" hidden>
-  <button id="save" disabled>Save configuration</button>
-  <div class="spacer"></div>
-  <div class="row"><span>T</span><input id="T" value="10"></div>
-  <div class="row"><span>n_steps</span><input id="n_steps" value="1000"></div>
-  <div class="row"><span>steps_per_frame</span><input id="steps_per_frame" value="5"></div>
-  <div class="row"><span>N</span><input id="N" value="10"></div>
-  <div class="spacer"></div>
-  <label><input id="loop" type="checkbox"> Loop (resample when all particles are dead)</label>
-  <label><input id="cumulative" type="checkbox"> Cumulative detector counts (since Reset)</label>
-  <label><input id="hide_particles" type="checkbox"> Hide particles and tracks</label>
-  <button id="play" disabled>Play</button>
-  <button id="step" disabled>Step</button>
-  <button id="reset" disabled>Reset</button>
-  <button id="resample" disabled>Resample particles</button>
+  <div class="column">
+    <div id="add-buttons" class="column"></div>
+    <button id="edit-source" disabled>Edit Source</button>
+    <button id="load-button" disabled>Load configuration</button>
+    <input id="load" type="file" accept=".json" hidden>
+    <button id="save" disabled>Save configuration</button>
+  </div>
+  <div class="column">
+    <div class="row"><span>T</span><input id="T" value="10" inputmode="decimal"></div>
+    <div class="row"><span>n_steps</span><input id="n_steps" value="1000" inputmode="numeric"></div>
+    <div class="row"><span>steps_per_frame</span><input id="steps_per_frame" value="5" inputmode="numeric"></div>
+    <div class="row"><span>N</span><input id="N" value="10" inputmode="numeric"></div>
+    <label><input id="loop" type="checkbox"> Loop</label>
+    <label><input id="cumulative" type="checkbox"> Cumulative counts</label>
+    <label><input id="hide_particles" type="checkbox"> Hide particles</label>
+    <button id="play" disabled>Play</button>
+    <button id="step" disabled>Step</button>
+    <button id="reset" disabled>Reset</button>
+    <button id="resample" disabled>Resample particles</button>
+  </div>
   <div id="status">Starting…</div>
 </div>
-<div id="plot"><canvas id="canvas"></canvas></div>
 
 <dialog id="dialog">
   <form id="dialog-form" method="dialog">

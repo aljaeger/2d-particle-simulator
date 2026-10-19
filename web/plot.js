@@ -14,10 +14,11 @@ function niceStep(range) {
 }
 
 class Plot {
-  constructor(canvas, onElementClick) {
+  constructor(canvas, onElementClick, setStatus = () => {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.onElementClick = onElementClick;
+    this.setStatus = setStatus;
     this.scene = null;
     this.track = [];
     this.alive = [];
@@ -25,12 +26,12 @@ class Plot {
     this.scales = null;
     this.visible = true;
     this.rectCallback = null;
-    this.drag = null;
+    this.corner = null;
+    this.hover = null;
     this.margin = { left: 40, right: 10, top: 10, bottom: 28 };
     new ResizeObserver(() => this.resize()).observe(canvas.parentElement);
-    canvas.addEventListener("mousedown", (e) => this.onDown(e));
-    canvas.addEventListener("mousemove", (e) => this.onMove(e));
-    window.addEventListener("mouseup", (e) => this.onUp(e));
+    canvas.addEventListener("pointerdown", (e) => this.onDown(e));
+    canvas.addEventListener("pointermove", (e) => this.onMove(e));
     this.resize();
   }
 
@@ -57,9 +58,13 @@ class Plot {
     this.draw();
   }
 
+  // The box is placed by tapping two opposite corners (drag selection does not work on phones).
   startRectangle(callback) {
     this.rectCallback = callback;
+    this.corner = null;
+    this.hover = null;
     this.canvas.style.cursor = "crosshair";
+    this.draw();
   }
 
   // --- coordinates ---------------------------------------------------------
@@ -90,38 +95,44 @@ class Plot {
     return [e.clientX - r.left, e.clientY - r.top];
   }
 
-  // --- mouse: drag a box when an add is pending, otherwise click to edit ----
+  // --- pointer: tap two corners when an add is pending, otherwise tap to edit --
   onDown(e) {
-    if (!this.scene || e.button !== 0) return;
+    if (!this.scene || (e.pointerType === "mouse" && e.button !== 0)) return;
+    e.preventDefault();
     const [px, py] = this.mouse(e);
-    if (this.rectCallback) this.drag = { start: [px, py], end: [px, py] };
-    else {
-      const [x, y] = this.toData(px, py);
-      for (const el of [...this.scene.elements].reverse()) {
-        if (el.xmin <= x && x <= el.xmax && el.ymin <= y && y <= el.ymax) {
-          this.onElementClick(el.index);
-          return;
-        }
+    if (this.rectCallback) {
+      if (!this.corner) {
+        this.corner = [px, py];
+        this.hover = [px, py];
+        this.setStatus("Tap the opposite corner");
+        this.draw();
+      } else this.finishRectangle(px, py);
+      return;
+    }
+    const [x, y] = this.toData(px, py);
+    for (const el of [...this.scene.elements].reverse()) {
+      if (el.xmin <= x && x <= el.xmax && el.ymin <= y && y <= el.ymax) {
+        this.onElementClick(el.index);
+        return;
       }
     }
   }
 
   onMove(e) {
-    if (!this.drag) return;
-    this.drag.end = this.mouse(e);
+    if (!this.corner) return;
+    this.hover = this.mouse(e);
     this.draw();
   }
 
-  onUp(e) {
-    if (!this.drag) return;
-    const { start, end } = this.drag;
-    this.drag = null;
+  // A second tap on (almost) the same spot cancels the placement.
+  finishRectangle(px, py) {
+    const start = this.corner;
     const callback = this.rectCallback;
-    this.rectCallback = null;
+    this.rectCallback = this.corner = this.hover = null;
     this.canvas.style.cursor = "";
     this.draw();
-    const moved = Math.abs(end[0] - start[0]) > 3 && Math.abs(end[1] - start[1]) > 3;
-    callback(moved ? [...this.toData(...start), ...this.toData(...end)] : null);
+    const moved = Math.abs(px - start[0]) > 3 && Math.abs(py - start[1]) > 3;
+    callback(moved ? [...this.toData(...start), ...this.toData(px, py)] : null);
   }
 
   // --- drawing ------------------------------------------------------------
@@ -140,12 +151,17 @@ class Plot {
     this.drawStar(...this.toPixel(...this.scene.source), 7);
     if (this.visible) this.drawParticles();
     ctx.restore();
-    if (this.drag) {
-      const { start, end } = this.drag;
+    if (this.corner) {
+      const [cx, cy] = this.corner, [hx, hy] = this.hover;
       ctx.save();
-      ctx.setLineDash([4, 3]);
       ctx.strokeStyle = "black";
-      ctx.strokeRect(start[0], start[1], end[0] - start[0], end[1] - start[1]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, cy); ctx.lineTo(cx + 6, cy);
+      ctx.moveTo(cx, cy - 6); ctx.lineTo(cx, cy + 6);
+      ctx.stroke();
+      ctx.setLineDash([4, 3]);
+      ctx.strokeRect(cx, cy, hx - cx, hy - cy);
       ctx.restore();
     }
   }

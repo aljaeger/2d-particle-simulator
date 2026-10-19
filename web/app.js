@@ -164,7 +164,7 @@ async function refreshScene() {
 
 async function addElement(type) {
   const wasPlaying = await interrupt();
-  setStatus(`Drag a box for the ${type}`);
+  setStatus(`Tap the first corner of the ${type}`);
   plot.startRectangle(async (corners) => {
     if (corners) {
       const values = await call("new_element_values", type, corners);
@@ -213,7 +213,7 @@ async function saveConfig() {
 }
 
 // --- startup -------------------------------------------------------------------
-const plot = new Plot($("canvas"), editElement);
+const plot = new Plot($("canvas"), editElement, setStatus);
 
 async function start() {
   for (const type of await call("element_types")) {
