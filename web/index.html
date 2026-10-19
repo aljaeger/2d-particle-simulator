@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2D Particle Simulator</title>
+<style>
+  html, body { margin: 0; height: 100%; font: 13px sans-serif; background: white; color: black; }
+  body { display: flex; }
+  #controls { width: 230px; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column; gap: 3px; overflow-y: auto; flex-shrink: 0; }
+  #controls button { width: 100%; }
+  #controls .row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  #controls .row input { width: 70px; }
+  #controls input.invalid { background: mistyrose; }
+  #controls .spacer { height: 6px; }
+  #status { white-space: pre-wrap; min-height: 2.5em; margin-top: 6px; }
+  #plot { flex: 1; min-width: 0; }
+  #canvas { display: block; }
+  #fields { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; }
+  #dialog-error { color: red; min-height: 1.2em; margin: 6px 0; }
+  #dialog menu { display: flex; gap: 4px; justify-content: center; margin: 0; padding: 0; }
+</style>
+</head>
+<body>
+<div id="controls">
+  <div id="add-buttons"></div>
+  <div class="spacer"></div>
+  <button id="edit-source" disabled>Edit Source</button>
+  <button id="load-button" disabled>Load configuration</button>
+  <input id="load" type="file" accept=".json" hidden>
+  <button id="save" disabled>Save configuration</button>
+  <div class="spacer"></div>
+  <div class="row"><span>T</span><input id="T" value="10"></div>
+  <div class="row"><span>n_steps</span><input id="n_steps" value="1000"></div>
+  <div class="row"><span>steps_per_frame</span><input id="steps_per_frame" value="5"></div>
+  <div class="row"><span>N</span><input id="N" value="10"></div>
+  <div class="spacer"></div>
+  <label><input id="loop" type="checkbox"> Loop (resample when all particles are dead)</label>
+  <label><input id="cumulative" type="checkbox"> Cumulative detector counts (since Reset)</label>
+  <label><input id="hide_particles" type="checkbox"> Hide particles and tracks</label>
+  <button id="play" disabled>Play</button>
+  <button id="step" disabled>Step</button>
+  <button id="reset" disabled>Reset</button>
+  <button id="resample" disabled>Resample particles</button>
+  <div id="status">Starting…</div>
+</div>
+<div id="plot"><canvas id="canvas"></canvas></div>
+
+<dialog id="dialog">
+  <form id="dialog-form" method="dialog">
+    <h3 id="dialog-title" style="margin-top:0"></h3>
+    <div id="fields"></div>
+    <div id="dialog-error"></div>
+    <menu>
+      <button type="submit">OK</button>
+      <button type="button" id="cancel">Cancel</button>
+      <button type="button" id="delete">Delete</button>
+    </menu>
+  </form>
+</dialog>
+
+<script src="plot.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
