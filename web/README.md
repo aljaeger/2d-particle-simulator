@@ -18,21 +18,21 @@ from `file://`), for example:
     python -m http.server 8000
 
 then open <http://localhost:8000/web/>. The first load fetches the Python runtime and numpy
-(about 10 MB) from the jsdelivr CDN; later loads come from the browser cache. A configuration can
-be loaded on start with a query parameter, e.g. <http://localhost:8000/web/?config=../gui_config.json>.
+(about 10 MB) from the jsdelivr CDN; later loads come from the browser cache. The page always
+starts from the repository's `gui_config.json`; other configurations can be opened with the
+"Load configuration" button, which reads a local file only.
 
 ## Hosting
 
 Any static https host that serves the whole repository works, for example GitHub Pages on the
 repository (the page fetches `../simulator.py`, `../elements/*.py`, `../gui/fields.py` and
 `../gui/config.py` relative to `web/`). The host must allow the page to be shown in an iframe
-(GitHub Pages does). Commit the configuration JSON you want to present, and link it with the
-`config` parameter.
+(GitHub Pages does). Commit the `gui_config.json` you want to present.
 
 ## PowerPoint
 
 1. Host the repository as above and note the page URL, e.g.
-   `https://<user>.github.io/2d-particle-simulator/web/?config=../demo_config.json`.
+   `https://<user>.github.io/2d-particle-simulator/web/`.
 2. In PowerPoint: Insert → Get Add-ins → search "Web Viewer" → Add.
 3. Paste the URL into the Web Viewer pane and press Preview. The add-in stays interactive in
    slideshow mode.

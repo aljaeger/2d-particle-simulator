@@ -1,4 +1,5 @@
 // Controls and playback; mirrors gui/controls.py and gui/app.py with the physics in a Web Worker.
+const DEFAULT_CONFIG = "../gui_config.json";
 const SETTINGS = { T: [10, false], n_steps: [1000, true], steps_per_frame: [5, true], N: [10, true] };
 
 const worker = new Worker("worker.js");
@@ -236,14 +237,11 @@ async function start() {
   $("hide_particles").onchange = show;
   document.querySelectorAll("#controls button, #controls input").forEach((el) => (el.disabled = false));
 
-  const config = new URLSearchParams(location.search).get("config");
-  if (config) {
-    const response = await fetch(config);
-    if (response.ok) {
-      await loadConfigText(await response.text());
-      return;
-    }
-    setStatus(`Could not load ${config}: ${response.status}`);
+  // Always start from the repository's saved configuration, like the desktop interface does.
+  const response = await fetch(DEFAULT_CONFIG);
+  if (response.ok) {
+    await loadConfigText(await response.text());
+    return;
   }
   await refreshScene();
   await resample();
