@@ -1,0 +1,5 @@
+.venv/
+figures/
+__pycache__/
+.pytest_cache/
+gui_config.json
